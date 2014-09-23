@@ -122,7 +122,7 @@ class TestXMLModel(unittest.TestCase):
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
 		self.assertTrue(isinstance(data, Node), 'The result should be a DOM Node')
-		self.assertEqual(data.data, "Item One", 'The  result should be Text Node')
+		self.assertEqual(data.value, "_1", 'The  result should be Text Node')
 
 	def test_on_get_iter_0_1(self):
 		self.logPoint()
@@ -164,9 +164,18 @@ class TestXMLModel(unittest.TestCase):
 		npath = self.model.on_get_path(iter)
 		self.assertEqual(npath, path, 'The result should be the same path as passed to on_get_iter')
 
+	def test_on_get_path_0_0_0_1(self) :
+		self.logPoint()
+		path = (0,0,0,1)
+		iter = self.model.on_get_iter(path)
+		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
+		npath = self.model.on_get_path(iter)
+		self.assertEqual(npath, path, 'The result should be the same path as passed to on_get_iter')
+
 	def test_on_get_path_0_0_0_0_0(self) :
 		self.logPoint()
 		path = (0,0,0,0,0)
+		#set_trace()
 		iter = self.model.on_get_iter(path)
 		npath = self.model.on_get_path(iter)
 		self.assertEqual(npath, None, 'The result should be None')
@@ -224,6 +233,7 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(value), NoneType, 'The second column will usually be None')
 		value = self.model.on_get_value(iter,2)
 		self.assertEqual(value, "item", 'The third column should be the tag')
+		#set_trace()
 		value = self.model.on_get_value(iter,3)
 		#self.assertEqual(type(value), StringType, 'The fourth column is content, should be text in this case')
 		self.assertEqual(value, "Item One", 'The fourth column is content, should be text in this case')
@@ -239,14 +249,14 @@ class TestXMLModel(unittest.TestCase):
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
 		value = self.model.on_get_value(iter,0)
 		self.assertEqual(type(value), IntType, 'The first column should be an IntType')
-		self.assertEqual(value, Node.TEXT_NODE, 'The first column should be an Element node')
+		self.assertEqual(value, Node.ATTRIBUTE_NODE, 'The first column should be an Attrib node')
 		value = self.model.on_get_value(iter,1)
 		self.assertEqual(type(value), NoneType, 'The second column will usually be None')
 		value = self.model.on_get_value(iter,2)
-		self.assertEqual(value, "TEXT", 'The third column should be the tag')
+		self.assertEqual(value, "id", 'The third column should be the tag')
 		value = self.model.on_get_value(iter,3)
 		#self.assertEqual(type(value), StringType, 'The fourth column is content, should be text in this case')
-		self.assertEqual(value, "Item One", 'The fourth column is content, should be text in this case')
+		self.assertEqual(value, "_1", 'The fourth column is content, should be text in this case')
 		value = self.model.on_get_value(iter,4)
 		self.assertEqual(type(value), NoneType, 'None should returned when an out of bounds index is provided')
  
@@ -380,7 +390,7 @@ class TestXMLModel(unittest.TestCase):
 		iter = self.model.on_get_iter(path)
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		children = self.model.on_iter_n_children(iter)
-		self.assertEqual(children, 1, 'The item node should only have one child')
+		self.assertEqual(children, 2, 'The item node should only have two children')
 
 	def test_on_iter_n_children_0_0_0_0(self) :
 		self.logPoint()
@@ -445,6 +455,7 @@ class TestXMLModel(unittest.TestCase):
 		path = (0,0)
 		iter = self.model.on_get_iter(path)
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
+		#set_trace()
 		child = self.model.on_iter_nth_child(iter, 2)
 		self.assertEqual(type(child), NoneType, 'The result should be None')
 
