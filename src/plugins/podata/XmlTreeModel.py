@@ -1,11 +1,6 @@
 from types import *
-#from xml.dom import Node
-from xml.dom.minidom import parse, parseString, Attr, Document, Node 
-
-import pyslet.iso8601 as iso
-import pyslet.odata2.csdl as edm
-import pyslet.odata2.core as core
-import pyslet.odata2.metadata as edmx
+from xml.dom import Node
+from xml.dom.minidom import parse, parseString, Attr 
 
 import pygtk
 pygtk.require("2.0")
@@ -81,7 +76,7 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			self.xml.unlink()
 			self.invalidate_iters()
 			self.xml = None
-		if type(xml_file) == Node or type(xml_file) == edmx.Document :
+		if type(xml_file) == Node:
 			self.xml = xml_file
 		elif type(xml_file) == str:
 			try:
