@@ -1,28 +1,62 @@
 from types import *
-from xml.dom import Node
-from xml.dom.minidom import parse, parseString, Attr 
+#from xml.dom import Node
+from xml.dom.minidom import parse, parseString, Attr, Document, Node 
+
+import pyslet.iso8601 as iso
+import pyslet.odata2.csdl as edm
+import pyslet.odata2.core as core
+import pyslet.odata2.metadata as edmx
 
 import pygtk
 pygtk.require("2.0")
 
 import gtk
 
+def _is_blank_node(node) :
+	value = None
+	if node :
+		if node.nodeType == Node.TEXT_NODE:
+			if node.data :
+				value = node.data.strip().strip("\n").strip("\p")
+			if len(value) < 1 :
+				return True
+	return False
 
 class XMLTreeModelAttr(Attr) :
-	def __init__(self, node, parent) :
+	def __init__(self, node, parent, index, siblings = None) :
 		Attr.__init__(self, node.name,
 			namespaceURI=node.namespaceURI, localName=node.localName, prefix=node.prefix)
 		self._set_value(node.value)
 		self.ownerDocument = node.ownerDocument
 		self.ownerElement = node.ownerElement
 		self.parentNode = parent
-		if node.nextSibling :
-			self.nextSibling = XMLTreeModelAttr(node.nextSibling, parent)
-		if node.previousSibling :
-			self.previousSibling = XMLTreeModelAttr(node.previousSibling, parent)
+		self.previousSibling = None
+		self.nextSibling = None
+		
+		if siblings :
+			self.previousSibling = siblings[0]
+			self.nextSibling = siblings[1]
+
+		if not self.previousSibling :
+			if(index > 0) :
+				idx = index - 1
+				self.previousSibling = XMLTreeModelAttr(parent.attributes.item(idx),
+					parent, idx, (None, self) )
+
+		if not self.nextSibling :
+			if(index < parent.attributes.length-1) :
+				idx = index + 1
+				self.nextSibling = XMLTreeModelAttr(parent.attributes.item(idx),
+					parent, idx, (self, None))
+			elif parent.hasChildNodes() :
+				node = parent.firstChild
+				while _is_blank_node(node) :
+					node = node.nextSibling
+				self.nextSibling = node
 		
 	def hasChildNodes(self) :
 		return False
+		
 
 
 class XMLTreeModel(gtk.GenericTreeModel):
@@ -47,7 +81,7 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			self.xml.unlink()
 			self.invalidate_iters()
 			self.xml = None
-		if type(xml_file) == Node:
+		if type(xml_file) == Node or type(xml_file) == edmx.Document :
 			self.xml = xml_file
 		elif type(xml_file) == str:
 			try:
@@ -242,14 +276,14 @@ class XMLTreeModel(gtk.GenericTreeModel):
 	def _first_element_child(self, node) :
 		if node :
 			if node.attributes :
-				node = XMLTreeModelAttr(node.attributes.item(0), node)
-				return node
+				child = XMLTreeModelAttr(node.attributes.item(0), node, 0)
+				return child
 			if node.hasChildNodes() :
-				node = node.firstChild
-				while self._is_blank_node(node) :
-					node = node.nextSibling
-				if node :
-					return node
+				child = node.firstChild
+				while _is_blank_node(child) :
+					child = child.nextSibling
+				if child :
+					return child
 		return None
 
 	def _next_element_sibling(self, node) :
@@ -261,7 +295,7 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			if not result :
 				result = node.parentNode.firstChild
 
-		while self._is_blank_node(result) :
+		while _is_blank_node(result) :
 			result = result.nextSibling
 		return result
 
@@ -269,24 +303,14 @@ class XMLTreeModel(gtk.GenericTreeModel):
 		if not node:
 			return None
 		result = node.previousSibling
-		while self._is_blank_node(result) :
+		while _is_blank_node(result) :
 			result = result.previousSibling
 		if not result :
 			if node.nodeType != Node.ATTRIBUTE_NODE and node.parentNode :
 				if node.parentNode.attributes :
 					idx = node.parentNode.attributes.length
-					result = XMLTreeModelAttr(node.parentNode.attributes.item(idx-1),node.parentNode)
+					result = XMLTreeModelAttr(node.parentNode.attributes.item(idx-1),node.parentNode,idx-1)
 		return result
-
-	def _is_blank_node(self, node) :
-		value = None
-		if node :
-			if node.nodeType == Node.TEXT_NODE:
-				if node.data :
-					value = node.data.strip().strip("\n").strip("\p")
-				if len(value) < 1 :
-					return True
-		return False
 
 	def _get_node_content(self, node) :
 		if node.nodeType == Node.DOCUMENT_NODE or Node.ELEMENT_NODE:
@@ -308,7 +332,7 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			return True
 		if parent.hasChildNodes() :
 			for node in parent.childNodes :
-				if not self._is_blank_node(node) :
+				if not _is_blank_node(node) :
 					return True
 		return False
 
@@ -318,7 +342,7 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			num_nodes += parent.attributes.length
 		if self._has_child_nodes(parent) :
 			for node in parent.childNodes :
-				if not self._is_blank_node(node) :
+				if not _is_blank_node(node) :
 					num_nodes += 1
 		return num_nodes
 
@@ -326,9 +350,9 @@ class XMLTreeModel(gtk.GenericTreeModel):
 		children = []
 		if parent.attributes :
 			for idx in range(0,parent.attributes.length) :
-				children.append(XMLTreeModelAttr(parent.attributes.item(idx), parent))
+				children.append(XMLTreeModelAttr(parent.attributes.item(idx), parent, idx))
 		for node in parent.childNodes :
-			if not self._is_blank_node(node) :
+			if not _is_blank_node(node) :
 				children.append(node)
 		if len(children) > n :
 			return children[n]
