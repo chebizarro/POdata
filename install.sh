@@ -54,7 +54,7 @@ fi
 #dia plugins
 mkdir /usr/share/dia/python/podata
 #plugins=(podata podata/__init__ podata/DiaEdmx podata/SqlEdmx podata/DiaSql podata/XmlTreeModel podata/strings)
-plugins=(podata_plugin podata/__init__ podata/XmlTreeModel)
+plugins=(podata_plugin podata/__init__ podata/XmlTreeModel podata/PysletTreeModel)
 for plugin in ${plugins[@]}
 do
 	echo "compiling and copying plugin " $plugin

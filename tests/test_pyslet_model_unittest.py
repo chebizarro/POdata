@@ -50,14 +50,14 @@ class TestXMLModel(unittest.TestCase):
 	def setUp(self):
 		'called multiple times, before every test method'
 		self.logPoint()
-		self.model = PysletTreeModel.XMLTreeModel(self.basic_xml)
+		self.model = PysletTreeModel.XMLTreeModel(self.basic_xml,PysletTreeModel.SETNodeIter)
  
 	def tearDown(self):
 		'called multiple times, after every test method'
 		self.logPoint()
 
 	def test_set(self) :
-		self.model.set(self.basic_xml)
+		self.model.set(self.basic_xml, PysletTreeModel.SETNodeIter)
 		self.test_on_get_iter_0()
 		self.test_on_get_iter_0_0()
 		self.test_on_get_iter_0_0_0()

@@ -53,6 +53,8 @@ class Podata :
 		self.open_window('main_window')
 		self.set_up_chooser()
 		self.set_up_statusbar()
+		widget = dia.get_shell()
+		widget.hide()
 	
 	# Handlers
 	def on_main_window_destroy(self, widget, data=None) :

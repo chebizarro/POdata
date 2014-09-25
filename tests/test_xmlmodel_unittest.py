@@ -12,7 +12,7 @@ import sys
 sys.path.append('../src/plugins')
 
 
-from podata import XmlTreeModel as XmlTreeModel
+from podata import PysletTreeModel as PysletTreeModel
 
 from xml.dom import Node
 
@@ -47,14 +47,15 @@ class TestXMLModel(unittest.TestCase):
 	def setUp(self):
 		'called multiple times, before every test method'
 		self.logPoint()
-		self.model = XmlTreeModel.XMLTreeModel(self.basic_xml)
+		self.model = PysletTreeModel.XMLTreeModel(self.basic_xml)
  
 	def tearDown(self):
 		'called multiple times, after every test method'
 		self.logPoint()
 
 	def test_set(self) :
-		self.model.set(self.basic_xml)
+		self.logPoint()
+		self.model.set(self.basic_xml, show_attribs = False)
 		self.test_on_get_iter_0()
 		self.test_on_get_iter_0_0()
 		self.test_on_get_iter_0_0_0()
@@ -91,8 +92,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertTrue(isinstance(data, Node), 'The result should be a DOM Node')
-		self.assertEqual(data.tagName, "root", 'The  first result should be the root Node')
+		self.assertTrue(isinstance(data.node, Node), 'The result should be a DOM Node')
+		self.assertEqual(data.node.tagName, "root", 'The  first result should be the root Node')
 
 	def test_on_get_iter_0_0(self):
 		self.logPoint()
@@ -101,8 +102,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertTrue(isinstance(data, Node), 'The result should be a DOM Node')
-		self.assertEqual(data.tagName, "items", 'The  first result should be the items Node')
+		self.assertTrue(isinstance(data.node, Node), 'The result should be a DOM Node')
+		self.assertEqual(data.node.tagName, "items", 'The  first result should be the items Node')
 
 	def test_on_get_iter_0_0_0(self):
 		self.logPoint()
@@ -111,8 +112,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertTrue(isinstance(data, Node), 'The result should be a DOM Node')
-		self.assertEqual(data.tagName, "item", 'The  first result should be the item Node')
+		self.assertTrue(isinstance(data.node, Node), 'The result should be a DOM Node')
+		self.assertEqual(data.node.tagName, "item", 'The  first result should be the item Node')
 
 	def test_on_get_iter_0_0_0_0(self):
 		self.logPoint()
@@ -121,8 +122,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertEqual(data.nodeType, Node.ATTRIBUTE_NODE, 'The result should be a Attr Node')
-		self.assertEqual(data.value, "_1", 'The  result should be ID Attr')
+		self.assertEqual(data.node.nodeType, Node.ATTRIBUTE_NODE, 'The result should be a Attr Node')
+		self.assertEqual(data.node.value, "_1", 'The  result should be ID Attr')
 
 	def test_on_get_iter_0_0_0_1(self):
 		self.logPoint()
@@ -131,8 +132,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertEqual(data.nodeType, Node.ATTRIBUTE_NODE, 'The result should be a Attr Node')
-		self.assertEqual(data.value, "One", 'The  result should be the name Attr')
+		self.assertEqual(data.node.nodeType, Node.ATTRIBUTE_NODE, 'The result should be a Attr Node')
+		self.assertEqual(data.node.value, "One", 'The  result should be the name Attr')
 
 	def test_on_get_iter_0_0_0_2(self):
 		self.logPoint()
@@ -141,8 +142,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertEqual(data.nodeType, Node.TEXT_NODE, 'The result should be a DOM Node')
-		self.assertEqual(data.data, "Item One", 'The  result should be Text Node')
+		self.assertEqual(data.node.nodeType, Node.TEXT_NODE, 'The result should be a DOM Node')
+		self.assertEqual(data.node.data, "Item One", 'The  result should be Text Node')
 
 	def test_on_get_iter_0_1(self):
 		self.logPoint()
@@ -157,8 +158,8 @@ class TestXMLModel(unittest.TestCase):
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		data = self.model.get_user_data(iter)
 		self.assertTrue(data, 'there should be data returned in the gtk.TreeIter')
-		self.assertTrue(isinstance(data, Node), 'The result should be a DOM Node')
-		self.assertEqual(data.tagName, "item", 'The  result should be Text Node')
+		self.assertTrue(isinstance(data.node, Node), 'The result should be a DOM Node')
+		self.assertEqual(data.node.tagName, "item", 'The  result should be Text Node')
 
 	def test_on_get_path_0(self) :
 		self.logPoint()
@@ -453,6 +454,7 @@ class TestXMLModel(unittest.TestCase):
 		path = (0,0)
 		iter = self.model.on_get_iter(path)
 		self.assertEqual(type(iter), gtk.TreeIter, 'The result should be a gtk.TreeIter')
+		#set_trace()
 		child = self.model.on_iter_nth_child(iter, 1)
 		self.assertEqual(type(child), gtk.TreeIter, 'The result should be a gtk.TreeIter')
 		npath = self.model.on_get_path(child)
