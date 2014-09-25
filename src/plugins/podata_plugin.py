@@ -35,6 +35,8 @@ import pyslet.odata2.core as core
 import pyslet.odata2.metadata as edmx
 
 from podata.XmlTreeModel import XMLTreeModel
+from podata import PysletTreeModel as PysletTreeModel
+
 
 class Podata :
 	
@@ -119,7 +121,7 @@ class Podata :
 	def set_up_treeviews(self) :
 		self.xml_view = self.builder.get_object("xml_view")
 		self.attr_view = self.builder.get_object("attrib_view")
-		treemodel = XMLTreeModel()
+		treemodel = PysletTreeModel.XMLTreeModel()
 		treemodelfilter = treemodel.filter_new(root=None)
 		treemodelfilter.set_visible_func(self.on_xml_tree_filter, data=None)
 		self.xml_view.set_model(treemodelfilter)
