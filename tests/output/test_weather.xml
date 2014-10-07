@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" Version="1.0">
+	<edmx:DataServices DataServiceVersion="2.0">
+		<Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm" Namespace="WeatherSchema">
+			<EntityType Abstract="false" Name="DataPoint">
+				<Key><PropertyRef Name="TimePoint"/></Key>
+				<Property Name="SunRainStart" Nullable="true" Type="Edm.Time"/>
+				<Property Name="Temperature" Nullable="true" Type="Edm.Single"/>
+				<Property Name="DewPoint" Nullable="true" Type="Edm.Single"/>
+				<Property Name="Sun" Nullable="true" Type="Edm.Single"/>
+				<Property Name="WindSpeedMax" Nullable="true" Type="Edm.Single"/>
+				<Property Name="TimePoint" Nullable="false" Type="Edm.DateTime"/>
+				<Property Name="Humidity" Nullable="true" Type="Edm.Byte"/>
+				<Property Name="Pressure" Nullable="true" Type="Edm.Int16"/>
+				<Property Name="WindSpeed" Nullable="true" Type="Edm.Single"/>
+				<Property Name="Rain" Nullable="true" Type="Edm.Single"/>
+				<Property Name="WindDirection" Nullable="true" Type="Edm.String"/>
+				<NavigationProperty FromRole="DataPoint" Name="Default" Relationship="DataPointNote" ToRole="Note"/>
+			</EntityType>
+			<EntityType Abstract="false" Name="Note">
+				<Key><PropertyRef Name="ID"/></Key>
+				<Property Name="StartDate" Nullable="false" Type="DateTime"/>
+				<Property Name="EndDate" Nullable="false" Type="DateTime"/>
+				<Property Name="ID" Nullable="false" Type="Edm.Int32"/>
+				<Property Name="Details" Nullable="false" Type="Edm.String"/>
+				<NavigationProperty FromRole="Note" Name="Default" Relationship="DataPointNote" ToRole="DataPoint"/>
+			</EntityType>
+			<Association Name="DataPointNote"><None Multiplicity="1" Role="DataPoint" Type="WeatherSchema.DataPoint"/><None Multiplicity="1" Role="Note" Type="WeatherSchema.DataPoint"/></Association>
+			<EntityContainer Name="CambridgeWeather">
+				<EntitySet EntityType="EntitySet" Name="Notes"/>
+				<EntitySet EntityType="EntitySet" Name="DataPoints"/>
+			</EntityContainer>
+		</Schema>
+	</edmx:DataServices>
+</edmx:Edmx>

@@ -3,11 +3,9 @@ from xml.dom import Node
 from xml.dom.minidom import parse, parseString, Attr 
 
 
-import pyslet.iso8601 as iso
 import pyslet.odata2.csdl as edm
-import pyslet.odata2.core as core
 import pyslet.odata2.metadata as edmx
-
+from pyslet.xml20081126.structures import Node as SETNode
 
 import pygtk
 pygtk.require("2.0")
@@ -46,26 +44,25 @@ class XmlNodeIter(object) :
 			if self.node.parentNode and self.show_attribs:
 				if self.node.parentNode.attributes :
 					idx = self.node.parentNode.attributes.length
-					self.previousSibling = XmlAttrIter(self.node.parentNode, idx-1)
+					self.previousSibling = XmlAttrIter(self.node.parentNode, idx-1, self.show_attribs)
 		return self.previousSibling
 		
 	def firstChild(self):
-		if self.show_attribs and self.node.attributes  :
-			return XmlAttrIter(self.node,0)
-		if self.node.hasChildNodes() :
+		if self.show_attribs :
+			try : return XmlAttrIter(self.node,0, None, self.show_attribs)
+			except : pass 
+		try :
 			child = self.node.firstChild
 			while self._is_blank_node(child) :
 				child = child.nextSibling
-			if child :
-				return XmlNodeIter(child, None, self.show_attribs)
-		return None
+			return XmlNodeIter(child, None, self.show_attribs)
+		except: return None
 		
 	def parent(self):
 		return XmlNodeIter(self.node.parentNode, None, self.show_attribs)
 		
 	def hasChildren(self):
-		if self.show_attribs and self.node.attributes :
-			return True
+		if self.show_attribs and self.node.attributes : return True
 		if self.node.hasChildNodes() :
 			for node in self.node.childNodes :
 				if not self._is_blank_node(node) :
@@ -85,56 +82,41 @@ class XmlNodeIter(object) :
 	def nthChild(self, n):
 		idx = n
 		if self.show_attribs :
-			if n < self.node.attributes.length :
-				return XmlAttrIter(self.node,n)
-			else :
-				idx = n-self.node.attributes.length
+			try : return XmlAttrIter(self.node,n)
+			except IndexError :	idx = n-self.node.attributes.length
 		node = self.firstChild().node
 		for child in range(0, idx) :
-			#result = node
 			node = node.nextSibling
 			while self._is_blank_node(node):
 				node = node.nextSibling
-		if node:
-			return XmlNodeIter(node, None, self.show_attribs)
-		return None
+		try: return XmlNodeIter(node, None, self.show_attribs)
+		except TypeError: return None
 		
 	def value(self, column):
-		if column == 0:
-			return self.node.nodeType
-		elif column == 1:
-			return self.node.prefix
+		if column == 0:	return self.node.nodeType
+		elif column == 1: return self.node.prefix
 		elif column == 2:
-			if self.node.nodeType == Node.CDATA_SECTION_NODE :
-				return "CDATA"
-			if self.node.nodeType == Node.DOCUMENT_NODE :
-				return "0"
-			if self.node.nodeType == Node.TEXT_NODE :
-				return "TEXT"
-			if self.node.nodeType == Node.ATTRIBUTE_NODE :
-				return self.node.name
-			else :
-				return self.node.tagName
+			if self.node.nodeType == Node.CDATA_SECTION_NODE : return "CDATA"
+			if self.node.nodeType == Node.DOCUMENT_NODE : return "0"
+			if self.node.nodeType == Node.TEXT_NODE : return "TEXT"
+			else : return self.node.tagName
 		elif column == 3:
 			if self.node.nodeType == Node.DOCUMENT_NODE or Node.ELEMENT_NODE:
 				if self.node.hasChildNodes() :
 					self.node.normalize()
 					for child in self.node.childNodes :
-						if child.nodeType == Node.TEXT_NODE :
-							return child.data.strip()
-						else :
-							return None
-			elif self.node.nodeType == Node.DOCUMENT_TYPE_NODE :
-				return self.node.systemId
-			elif self.node.nodeType == Node.TEXT_NODE :
-				return self.node.data.strip()
+						if child.nodeType == Node.TEXT_NODE : return child.data.strip()
+						else :return None
+			elif self.node.nodeType == Node.DOCUMENT_TYPE_NODE : return self.node.systemId
+			elif self.node.nodeType == Node.TEXT_NODE : return self.node.data.strip()
 			return self.node.nodeValue
+		elif column == 4:
+			return self
 
 	def isSameNode(self, node):
-		if node :
-			if self.node == node.node:
-				return True
-		return False
+		try :
+			if self.node == node.node: return True
+		except:	return False
 		
 	def _is_blank_node(self, node) :
 		value = None
@@ -221,9 +203,11 @@ class SETNodeIter(XmlNodeIter) :
 						if previous :
 							self.previousSibling = SETNodeIter(previous, (None, self), show_attribs)
 						elif show_attribs :
-							attribs = parent.GetAttributes()
-							if attribs :
-								
+							try:
+								index = len(self.node.parent.GetAttributes())-1
+								self.previousSibling = SETAttrIter(self.node.parent, index ,(None, self), show_attribs)
+							except:
+								pass
 						break
 					previous = sibling
 		
@@ -249,38 +233,54 @@ class SETNodeIter(XmlNodeIter) :
 		
 	def previous(self):
 		return self.previousSibling
-	
 			
 	def firstChild(self):
-		if self.hasChildren() :
+		if self.show_attribs :
 			try:
-				firstchild = self.node.GetCanonicalChildren().next()
-				return SETNodeIter(firstchild, None, self.show_attribs)
+				return SETAttrIter(self.node, 0 ,None, self.show_attribs)
 			except:
+				# need to handle specific exceptions so that any other funky ones get caught
 				pass
-		return None
+		try:
+			firstchild = self.node.GetCanonicalChildren().next()
+			return SETNodeIter(firstchild, None, self.show_attribs)
+		except:
+			return None
 		
 	def parent(self):
-		if self.node.parent :
+		try :
 			return SETNodeIter(self.node.parent, None, self.show_attribs)
-		return None
+		except :
+			return None
 		
 	def hasChildren(self):
+		if self.show_attribs :
+			if len(self.node.GetAttributes()) > 0 :
+				return True
 		for child in self.node.GetCanonicalChildren() :
 			return True
 		return False
 		
 	def numChildren(self):
 		numChildren = 0
+		if self.show_attribs :
+			numChildren += len(self.node.GetAttributes())
 		for child in self.node.GetCanonicalChildren() :
 			numChildren += 1
 		return numChildren
 		
 	def nthChild(self, n):
+		if self.show_attribs :
+			try:
+				return SETAttrIter(self.node, n,None, self.show_attribs)
+			except:
+				n -= len(self.node.GetAttributes())
+				pass
 		numChildren = 0
 		for child in self.node.GetCanonicalChildren() :
 			if numChildren == n :
 				return SETNodeIter(child, None, self.show_attribs)
+			numChildren +=1
 		return None
 		
 	def value(self, column):
@@ -292,11 +292,10 @@ class SETNodeIter(XmlNodeIter) :
 		elif column == 2:
 			return self.node.GetXMLName()[1]
 		elif column == 3:
-			try:
-				value = self.node.GetValue(True)
-				return value
-			except:
-				return None
+			try: return self.node.GetValue(True)
+			except: return None
+		elif column == 4:
+			return self
 
 	@staticmethod
 	def parse(xml):
@@ -314,6 +313,55 @@ class SETNodeIter(XmlNodeIter) :
 			raise Exception("The object is not a valid XML object")
 		return doc.root
 	
+class SETAttrIter(XmlNodeIter) :
+	def __init__(self, parent, index, siblings = None, show_attribs=True) :
+		node = parent.GetAttributes().items()[index] 
+		super(SETAttrIter, self).__init__(node, siblings, show_attribs)
+		self.parentNode = parent
+		self.index = index
+
+
+	def next(self):
+		if not self.nextSibling :
+			try: self.nextSibling =  SETAttrIter(self.parentNode, self.index+1, (self, None), self.show_attribs )
+			except:	pass
+			try:
+				child = self.parentNode.GetCanonicalChildren().next()
+				return SETNodeIter(child, (self, None), self.show_attribs)
+			except:	pass
+		return self.nextSibling
+	
+	def previous(self):
+		if not self.previousSibling :
+			if(self.index > 0) :
+				self.previousSibling = SETAttrIter(self.parentNode, self.index-1, (None, self), self.show_attribs)
+		return self.previousSibling
+
+	def firstChild(self):
+		try:
+			firstchild = self.parentNode.GetCanonicalChildren().next()
+			return SETNodeIter(firstchild, None, self.show_attribs)
+		except:
+			return None
+
+	def parent(self):
+		return SETNodeIter(self.parentNode, None, self.show_attribs)
+
+	def hasChildren(self):
+		return False
+
+	def numChildren(self):
+		return 0
+		
+	def nthChild(self, n):
+		return None
+
+	def value(self, column):
+		if column == 0: return Node.ATTRIBUTE_NODE
+		elif column == 1: return ""
+		elif column == 2: return self.node[0][1]
+		elif column == 3: return self.node[1]
+		elif column == 4: return self
 
 
 class XMLTreeModel(gtk.GenericTreeModel):
@@ -322,8 +370,18 @@ class XMLTreeModel(gtk.GenericTreeModel):
 		IntType,
 		StringType,
 		StringType,
-		StringType
+		StringType,
+		ObjectType
 	)
+	
+	column_names = (
+		"Node type",
+		"Namespace",
+		"Name",
+		"Value",
+		"Iterator"
+	)
+	
 	xml = None
 	iter = None
 	iter_class = XmlNodeIter
@@ -355,6 +413,16 @@ class XMLTreeModel(gtk.GenericTreeModel):
 			self.row_deleted(path)
 			self.row_inserted(path, self.get_iter(path))
 			self.row_has_child_toggled(path, self.get_iter(path))
+
+	"""
+	Additional functions for XMLTreeModel
+	"""
+	def get_column_name(self, column) :
+		try :
+			return self.column_names[column]
+		except IndexError:
+			return None
+
 	""" GenericTreeModel Interface handlers """
 	"""
 	The on_get_flags() method should return a value that is a combination of:
@@ -375,9 +443,10 @@ class XMLTreeModel(gtk.GenericTreeModel):
 	This method is usually called from a TreeView when its model is set.
 	"""
 	def on_get_column_type(self, index) :
-		if index >= len(self.column_types) or index < 0:
+		try:
+			return self.column_types[index]
+		except IndexError:
 			return None
-		return self.column_types[index]
 	"""
 	The on_get_iter() method should return an rowref for the tree path specified by path.
 	The tree path will always be represented using a tuple. 
