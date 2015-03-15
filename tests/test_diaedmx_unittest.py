@@ -30,7 +30,7 @@ def tearDownModule():
 	'called once, after everything else in this module'
 	logPoint('module %s' % __name__)
    
-class TestPodata(unittest.TestCase):
+class TestDiaEdmx(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
@@ -47,6 +47,12 @@ class TestPodata(unittest.TestCase):
 		with open(xml) as f:
 			doc.Read(f)
 		cls.files["metadata"] = doc
+		xml = "xml/big_metadata.xml"
+		doc = edmx.Document()
+		set_trace()
+		with open(xml) as f:
+			doc.Read(f)
+		cls.files["big_metadata"] = doc
 		
 	@classmethod
 	def tearDownClass(cls):

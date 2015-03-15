@@ -1,6 +1,6 @@
 --- 
 +++ 
-@@ -1,115 +1,91 @@
+@@ -1,52 +1,52 @@
  <edmx:Edmx
 +xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices"
  xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx"
@@ -16,98 +16,72 @@
 +xmlns="http://schemas.microsoft.com/ado/2009/11/edm"
  Namespace="WeatherSchema"
  >
--<Association
--Name="DataPointNote"
-->
--<End
--Role="DataPoint"
--Type="WeatherSchema.DataPoint"
+ <Association
+ Name="DataPointNote"
+ >
+ <End
++Multiplicity="*"
+ Role="DataPoint"
+ Type="WeatherSchema.DataPoint"
 -Multiplicity="*"
--/>
--<End
--Role="Note"
--Type="WeatherSchema.Note"
+ />
+ <End
++Multiplicity="0..1"
+ Role="Note"
+ Type="WeatherSchema.Note"
 -Multiplicity="0..1"
--/>
--</Association>
+ />
+ </Association>
  <EntityContainer
  Name="CambridgeWeather"
 -m:IsDefaultEntityContainer="true"
  >
  <EntitySet
-+EntityType="EntitySet"
++EntityType="WeatherSchema.DataPoint"
  Name="DataPoints"
 -EntityType="WeatherSchema.DataPoint"
  />
  <EntitySet
-+EntityType="EntitySet"
++EntityType="WeatherSchema.Note"
  Name="Notes"
 -EntityType="WeatherSchema.Note"
  />
--<AssociationSet
--Name="DataPointNotes"
+ <AssociationSet
++Association="WeatherSchema.DataPointNote"
+ Name="DataPointNotes"
 -Association="WeatherSchema.DataPointNote"
-->
--<End
--Role="DataPoint"
--EntitySet="DataPoints"
--/>
--<End
--Role="Note"
--EntitySet="Notes"
--/>
--</AssociationSet>
- </EntityContainer>
- <EntityType
-+Abstract="false"
- Name="DataPoint"
  >
-+<NavigationProperty
-+FromRole="DataPoint"
-+Name="Default"
-+Relationship="DataPointNote"
-+ToRole="Note"
-+/>
- <Property
- Name="DewPoint"
-+Nullable="true"
- Type="Edm.Single"
+ <End
++EntitySet="DataPoints"
+ Role="DataPoint"
+-EntitySet="DataPoints"
  />
- <Property
- Name="Humidity"
-+Nullable="true"
+ <End
++EntitySet="Notes"
+ Role="Note"
+-EntitySet="Notes"
+ />
+ </AssociationSet>
+ </EntityContainer>
+@@ -62,9 +62,9 @@
  Type="Edm.Byte"
--/>
--<NavigationProperty
--Name="Note"
--Relationship="WeatherSchema.DataPointNote"
+ />
+ <NavigationProperty
++FromRole="DataPoint"
+ Name="Note"
+ Relationship="WeatherSchema.DataPointNote"
 -FromRole="DataPoint"
--ToRole="Note"
+ ToRole="Note"
  />
  <Property
- Name="Pressure"
-+Nullable="true"
- Type="Edm.Int16"
- />
- <Property
- Name="Rain"
-+Nullable="true"
- Type="Edm.Single"
- />
- <Property
- Name="Sun"
-+Nullable="true"
- Type="Edm.Single"
- />
+@@ -82,27 +82,19 @@
  <Property
  Name="SunRainStart"
-+Nullable="true"
  Type="Edm.Time"
 -Precision="0"
  />
  <Property
  Name="Temperature"
-+Nullable="true"
  Type="Edm.Single"
 -m:FC_TargetPath="SyndicationTitle"
 -m:FC_KeepInContent="true"
@@ -123,35 +97,20 @@
  />
  <Property
  Name="WindDirection"
-+Nullable="true"
  Type="Edm.String"
 -MaxLength="3"
 -Unicode="false"
  />
  <Property
  Name="WindSpeed"
-+Nullable="true"
- Type="Edm.Single"
- />
- <Property
- Name="WindSpeedMax"
-+Nullable="true"
- Type="Edm.Single"
- />
- <Key>
-@@ -119,37 +95,34 @@
- </Key>
- </EntityType>
- <EntityType
-+Abstract="false"
+@@ -122,34 +114,30 @@
  Name="Note"
  >
  <NavigationProperty
--Name="DataPoints"
--Relationship="WeatherSchema.DataPointNote"
- FromRole="Note"
-+Name="Default"
-+Relationship="DataPointNote"
++FromRole="Note"
+ Name="DataPoints"
+ Relationship="WeatherSchema.DataPointNote"
+-FromRole="Note"
  ToRole="DataPoint"
  />
  <Property
@@ -184,24 +143,3 @@
  />
  <Key>
  <PropertyRef
-@@ -157,6 +130,20 @@
- />
- </Key>
- </EntityType>
-+<Association
-+Name="DataPointNote"
-+>
-+<None
-+Multiplicity="1"
-+Role="DataPoint"
-+Type="WeatherSchema.DataPoint"
-+/>
-+<None
-+Multiplicity="1"
-+Role="Note"
-+Type="WeatherSchema.DataPoint"
-+/>
-+</Association>
- </Schema>
- </edmx:DataServices>
- </edmx:Edmx>

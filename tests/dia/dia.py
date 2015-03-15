@@ -239,7 +239,7 @@ class ObjectType :
 	#@staticmethod
 	def create (self, x=0,y=0) :
 		""" create(real: x, real: y) -> (Object: o, Handle: h1, Handle: h2)  Create a new object of this type. Returns a tuple containing the new object and up to two handles. """
-		obj = Object(self.name)
+		obj = Object(self)
 		return (obj,Handle(obj),Handle(obj))
 		
 class ExportFilter :

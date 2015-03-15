@@ -166,7 +166,7 @@ class Podata :
 			raise TypeError("Must be an Edmx document")
 		name = sFile
 		self.diagrams[name] = DiaEdmx.DiaEdmx(name, diagramData)
-		self.diagrams[name].addDocument(doc)
+		self.diagrams[name].add_document(doc)
 		self.diagrams[name].show()
 		return self.diagrams[name]
 

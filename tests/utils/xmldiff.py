@@ -1,8 +1,7 @@
 import difflib
 from lxml.etree import parse, XSLT, tostring, XMLParser, fromstring
 
-
-xslt = """
+xslt_str = """
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"> 
 <xsl:template match="node()|@*"> 
     <xsl:copy> 
@@ -16,12 +15,12 @@ xslt = """
 	"""
 
 def diff_xml(fromFile, toFile, outputFile) :
-	global xslt
+	global xslt_str
 	xml = []
 	files = []
 
 	parser = XMLParser(remove_blank_text=True)
-	xslt = fromstring(xslt)
+	xslt = fromstring(xslt_str)
 	transform = XSLT(xslt)
 	
 	xml.append(parse(fromFile, parser))
